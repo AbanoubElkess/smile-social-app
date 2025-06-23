@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { body } from 'express-validator';
 import { AuthService } from '../services/authService';
 import { authenticate, optionalAuth } from '../middleware/auth';
@@ -79,7 +79,7 @@ const changePasswordValidation = [
 ];
 
 // Routes
-router.post('/signup', validate(signupValidation), catchAsync(async (req, res) => {
+router.post('/signup', validate(signupValidation), catchAsync(async (req: Request, res: Response) => {
   const result = await authService.signup(req.body);
   
   res.status(201).json({
@@ -89,7 +89,7 @@ router.post('/signup', validate(signupValidation), catchAsync(async (req, res) =
   });
 }));
 
-router.post('/login', validate(loginValidation), catchAsync(async (req, res) => {
+router.post('/login', validate(loginValidation), catchAsync(async (req: Request, res: Response) => {
   const result = await authService.login(req.body);
   
   // Set cookies
@@ -113,7 +113,7 @@ router.post('/login', validate(loginValidation), catchAsync(async (req, res) => 
   });
 }));
 
-router.post('/verify-email', catchAsync(async (req, res) => {
+router.post('/verify-email', catchAsync(async (req: Request, res: Response) => {
   const { code } = req.body;
   
   if (!code) {
@@ -131,7 +131,7 @@ router.post('/verify-email', catchAsync(async (req, res) => {
   });
 }));
 
-router.post('/resend-verification', catchAsync(async (req, res) => {
+router.post('/resend-verification', catchAsync(async (req: Request, res: Response) => {
   const { email } = req.body;
   
   if (!email) {
@@ -141,7 +141,7 @@ router.post('/resend-verification', catchAsync(async (req, res) => {
     });
   }
 
-  const result = await authService.resendVerificationEmail(email);
+  const result = await authService.resendVerification(email);
   
   res.status(200).json({
     success: true,
@@ -149,7 +149,7 @@ router.post('/resend-verification', catchAsync(async (req, res) => {
   });
 }));
 
-router.post('/forgot-password', validate(forgotPasswordValidation), catchAsync(async (req, res) => {
+router.post('/forgot-password', validate(forgotPasswordValidation), catchAsync(async (req: Request, res: Response) => {
   const result = await authService.forgotPassword(req.body.email);
   
   res.status(200).json({
@@ -158,7 +158,7 @@ router.post('/forgot-password', validate(forgotPasswordValidation), catchAsync(a
   });
 }));
 
-router.post('/reset-password', validate(resetPasswordValidation), catchAsync(async (req, res) => {
+router.post('/reset-password', validate(resetPasswordValidation), catchAsync(async (req: Request, res: Response) => {
   const { token, password } = req.body;
   const result = await authService.resetPassword(token, password);
   
@@ -168,7 +168,7 @@ router.post('/reset-password', validate(resetPasswordValidation), catchAsync(asy
   });
 }));
 
-router.post('/change-password', authenticate, validate(changePasswordValidation), catchAsync(async (req, res) => {
+router.post('/change-password', authenticate, validate(changePasswordValidation), catchAsync(async (req: Request, res: Response) => {
   const { currentPassword, newPassword } = req.body;
   const userId = (req as any).user.id;
   
@@ -180,7 +180,7 @@ router.post('/change-password', authenticate, validate(changePasswordValidation)
   });
 }));
 
-router.post('/logout', authenticate, catchAsync(async (req, res) => {
+router.post('/logout', authenticate, catchAsync(async (req: Request, res: Response) => {
   const userId = (req as any).user.id;
   const result = await authService.logout(userId);
   
@@ -194,7 +194,7 @@ router.post('/logout', authenticate, catchAsync(async (req, res) => {
   });
 }));
 
-router.get('/me', authenticate, catchAsync(async (req, res) => {
+router.get('/me', authenticate, catchAsync(async (req: Request, res: Response) => {
   const user = (req as any).user;
   
   // Remove sensitive data
@@ -208,7 +208,7 @@ router.get('/me', authenticate, catchAsync(async (req, res) => {
   });
 }));
 
-router.get('/check-auth', optionalAuth, catchAsync(async (req, res) => {
+router.get('/check-auth', optionalAuth, catchAsync(async (req: Request, res: Response) => {
   const user = (req as any).user;
   
   if (user) {

@@ -42,10 +42,7 @@ export const authenticate = async (
 
     // Check if user still exists
     const currentUser = await prisma.user.findUnique({
-      where: { id: decoded.id },
-      include: {
-        profile: true
-      }
+      where: { id: decoded.id }
     });
 
     if (!currentUser) {
@@ -110,10 +107,7 @@ export const optionalAuth = async (
     if (token) {
       const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload;
       const currentUser = await prisma.user.findUnique({
-        where: { id: decoded.id },
-        include: {
-          profile: true
-        }
+        where: { id: decoded.id }
       });
 
       if (currentUser && currentUser.isActive) {

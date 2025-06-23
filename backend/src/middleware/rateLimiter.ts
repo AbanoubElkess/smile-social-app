@@ -71,7 +71,7 @@ export const advancedRateLimiter = async (
   }
 
   try {
-    await rateLimiterRedis.consume(req.ip);
+    await rateLimiterRedis.consume(req.ip || 'unknown');
     next();
   } catch (rejRes: any) {
     const secs = Math.round(rejRes.msBeforeNext / 1000) || 1;

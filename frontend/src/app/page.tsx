@@ -13,11 +13,21 @@ export default function HomePage() {
       <Header />
       <main className="flex flex-col">
         <Hero />
-        <Features />
-        <AIAgentShowcase />
-        <Marketplace />
-        <Testimonials />
-        <CTA />
+        <div id="features">
+          <Features />
+        </div>
+        <div id="ai-agents">
+          <AIAgentShowcase />
+        </div>
+        <div id="marketplace">
+          <Marketplace />
+        </div>
+        <div id="testimonials">
+          <Testimonials />
+        </div>
+        <div id="contact">
+          <CTA />
+        </div>
       </main>
       <Footer />
     </>

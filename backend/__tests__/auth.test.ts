@@ -3,6 +3,7 @@ import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
 import { AuthService } from '../src/services/authService';
 import { hashPassword } from '../src/utils/auth';
+import app from '../src/server';
 
 const prisma = new PrismaClient();
 

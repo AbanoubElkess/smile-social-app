@@ -1,18 +1,18 @@
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
+import * as jwt from 'jsonwebtoken';
+import * as bcrypt from 'bcryptjs';
+import * as crypto from 'crypto';
 import { User } from '@prisma/client';
 
 export const generateToken = (userId: string): string => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET as string, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
-  });
+  const secret = process.env.JWT_SECRET as string;
+  const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
+  return jwt.sign({ id: userId }, secret, { expiresIn } as any);
 };
 
 export const generateRefreshToken = (userId: string): string => {
-  return jwt.sign({ id: userId }, process.env.JWT_REFRESH_SECRET as string, {
-    expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
-  });
+  const secret = process.env.JWT_REFRESH_SECRET as string;
+  const expiresIn = process.env.JWT_REFRESH_EXPIRES_IN || '30d';
+  return jwt.sign({ id: userId }, secret, { expiresIn } as any);
 };
 
 export const verifyRefreshToken = (token: string): any => {

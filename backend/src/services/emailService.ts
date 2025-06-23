@@ -1,11 +1,11 @@
-import nodemailer from 'nodemailer';
+import * as nodemailer from 'nodemailer';
 import { logger } from '../utils/logger';
 
 export class EmailService {
   private transporter: nodemailer.Transporter;
 
   constructor() {
-    this.transporter = nodemailer.createTransporter({
+    this.transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST || 'smtp.gmail.com',
       port: parseInt(process.env.EMAIL_PORT || '587'),
       secure: process.env.EMAIL_PORT === '465', // true for 465, false for other ports

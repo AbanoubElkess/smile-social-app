@@ -11,13 +11,14 @@ import Redis from 'ioredis';
 // Import routes
 import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
-import postRoutes from './routes/posts';
-import aiAgentRoutes from './routes/ai-agents';
-import marketplaceRoutes from './routes/marketplace';
-import conversationRoutes from './routes/conversations';
-import notificationRoutes from './routes/notifications';
-import mediaRoutes from './routes/media';
-import paymentRoutes from './routes/payments';
+import promoVideoRoutes from './routes/promo-videos';
+// import postRoutes from './routes/posts';
+// import aiAgentRoutes from './routes/ai-agents';
+// import marketplaceRoutes from './routes/marketplace';
+// import conversationRoutes from './routes/conversations';
+// import notificationRoutes from './routes/notifications';
+// import mediaRoutes from './routes/media';
+// import paymentRoutes from './routes/payments';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -97,13 +98,14 @@ app.get('/health', (req: Request, res: Response) => {
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/posts', postRoutes);
-app.use('/api/ai-agents', aiAgentRoutes);
-app.use('/api/marketplace', marketplaceRoutes);
-app.use('/api/conversations', conversationRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/media', mediaRoutes);
-app.use('/api/payments', paymentRoutes);
+app.use('/api/promo-videos', promoVideoRoutes);
+// app.use('/api/posts', postRoutes);
+// app.use('/api/ai-agents', aiAgentRoutes);
+// app.use('/api/marketplace', marketplaceRoutes);
+// app.use('/api/conversations', conversationRoutes);
+// app.use('/api/notifications', notificationRoutes);
+// app.use('/api/media', mediaRoutes);
+// app.use('/api/payments', paymentRoutes);
 
 // Socket.IO connection handling
 socketHandler(io);

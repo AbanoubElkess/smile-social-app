@@ -156,7 +156,7 @@ router.get('/:username', catchAsync(async (req: any, res: any) => {
 // Get user followers
 router.get('/:userId/followers', validate(paginationValidation), catchAsync(async (req: any, res: any) => {
   const { page = 1, limit = 20 } = req.query;
-  const result = await userService.getUserFollowers(req.params.userId, parseInt(page), parseInt(limit));
+  const result = await userService.getFollowers(req.params.userId, parseInt(page), parseInt(limit));
   
   res.status(200).json({
     success: true,
@@ -167,7 +167,7 @@ router.get('/:userId/followers', validate(paginationValidation), catchAsync(asyn
 // Get user following
 router.get('/:userId/following', validate(paginationValidation), catchAsync(async (req: any, res: any) => {
   const { page = 1, limit = 20 } = req.query;
-  const result = await userService.getUserFollowing(req.params.userId, parseInt(page), parseInt(limit));
+  const result = await userService.getFollowing(req.params.userId, parseInt(page), parseInt(limit));
   
   res.status(200).json({
     success: true,

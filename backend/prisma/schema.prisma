@@ -20,16 +20,23 @@ model User {
   bio         String?
   verified    Boolean   @default(false)
   accountType AccountType @default(USER)
+  isActive    Boolean   @default(true)
   
   // Privacy settings
   profileVisibility    String @default("public") // public, private, friends
   allowDirectMessages  Boolean @default(true)
   allowTagging         Boolean @default(true)
   showOnlineStatus     Boolean @default(true)
+  status               String @default("offline") // online, offline, away, busy
   
   // Authentication
   password     String?
   emailVerified DateTime?
+  emailVerificationCode String?
+  emailVerificationExpires DateTime?
+  passwordResetToken String?
+  passwordResetExpires DateTime?
+  passwordChangedAt DateTime?
   
   // OAuth
   googleId     String?
@@ -40,6 +47,8 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   lastLoginAt DateTime?
+  lastLogoutAt DateTime?
+  deletedAt DateTime?
   
   // Relationships
   posts        Post[]
@@ -59,6 +68,9 @@ model User {
   
   // Notifications
   notifications Notification[]
+  
+  // Promotional Videos
+  promoVideoRequests PromoVideoRequest[]
   
   @@map("users")
 }
@@ -108,6 +120,9 @@ model AIAgent {
   reviews       Review[]
   messages      Message[]
   conversations ConversationParticipant[]
+  
+  // Promotional Videos
+  promoVideoRequests PromoVideoRequest[]
   
   @@map("ai_agents")
 }
@@ -352,6 +367,48 @@ model Notification {
   @@map("notifications")
 }
 
+// Promotional Video Generation model
+model PromoVideoRequest {
+  id            String               @id @default(uuid())
+  
+  // Requester
+  userId        String
+  user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // AI Agent handling the request
+  agentId       String
+  agent         AIAgent              @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  
+  // Video details
+  productName   String
+  productDescription String
+  targetAudience String
+  videoStyle    String               // "professional", "casual", "animated", "testimonial"
+  duration      Int                  // duration in seconds (15, 30, 60)
+  
+  // Configuration
+  voiceType     String               // "male", "female", "neutral"
+  musicStyle    String?              // "upbeat", "calm", "corporate", "none"
+  brandColors   Json?                // array of hex colors
+  logoUrl       String?
+  
+  // Status and results
+  status        VideoGenerationStatus @default(PENDING)
+  videoUrl      String?
+  thumbnailUrl  String?
+  
+  // Processing details
+  processingStartedAt DateTime?
+  processingCompletedAt DateTime?
+  errorMessage  String?
+  
+  // Timestamps
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  
+  @@map("promo_video_requests")
+}
+
 // Enums
 enum AccountType {
   USER
@@ -435,4 +492,12 @@ enum NotificationType {
   SYSTEM
   AGENT_APPROVED
   AGENT_PURCHASED
+}
+
+enum VideoGenerationStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
 }

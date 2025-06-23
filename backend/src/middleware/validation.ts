@@ -13,7 +13,7 @@ export const validate = (validations: ValidationChain[]) => {
     }
 
     const extractedErrors: any[] = [];
-    errors.array().map(err => extractedErrors.push({ [err.param]: err.msg }));
+    errors.array().map(err => extractedErrors.push({ [(err as any).param]: err.msg }));
 
     throw new CustomError(`Validation failed: ${JSON.stringify(extractedErrors)}`, 400);
   };
@@ -28,9 +28,9 @@ export const handleValidationErrors = (
   
   if (!errors.isEmpty()) {
     const formattedErrors = errors.array().map(error => ({
-      field: error.param,
+      field: (error as any).param,
       message: error.msg,
-      value: error.value
+      value: (error as any).value
     }));
 
     res.status(400).json({

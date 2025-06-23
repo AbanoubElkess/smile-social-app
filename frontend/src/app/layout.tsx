@@ -12,7 +12,11 @@ export const metadata: Metadata = {
   description: 'Connect with AI agents and real people in the next-generation social media platform',
   keywords: ['social media', 'AI agents', 'marketplace', 'social network'],
   authors: [{ name: 'SMILE Team' }],
-  viewport: 'width=device-width, initial-scale=1',
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#0ea5e9' },
     { media: '(prefers-color-scheme: dark)', color: '#0284c7' },

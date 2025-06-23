@@ -23,7 +23,6 @@
       "@/utils/*": ["./src/utils/*"],
       "@/types/*": ["./src/types/*"]
     },
-    "types": ["node", "jest"],
     "typeRoots": ["./node_modules/@types"]
   },
   "include": ["src/**/*", "__tests__/**/*"],
