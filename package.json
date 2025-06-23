@@ -1,0 +1,70 @@
+{
+  "name": "smile-monorepo",
+  "version": "1.0.0",
+  "description": "SMILE - Social Media Intelligence & Live Experience",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend",
+    "mobile",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" \"npm run dev:ai\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:ai": "cd ai-service && python -m uvicorn main:app --reload --port 8001",
+    "build": "npm run build:shared && npm run build:backend && npm run build:frontend",
+    "build:shared": "cd shared && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "build:mobile": "cd mobile && npm run build",
+    "test": "concurrently \"npm run test:shared\" \"npm run test:backend\" \"npm run test:frontend\"",
+    "test:shared": "cd shared && npm test",
+    "test:backend": "cd backend && npm test",
+    "test:frontend": "cd frontend && npm test",
+    "test:mobile": "cd mobile && npm test",
+    "lint": "concurrently \"npm run lint:shared\" \"npm run lint:backend\" \"npm run lint:frontend\"",
+    "lint:shared": "cd shared && npm run lint",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:frontend": "cd frontend && npm run lint",
+    "lint:mobile": "cd mobile && npm run lint",
+    "format": "prettier --write \"**/*.{js,ts,tsx,json,md}\"",
+    "docker:dev": "docker-compose -f docker-compose.dev.yml up -d",
+    "docker:prod": "docker-compose -f docker-compose.prod.yml up -d",
+    "docker:down": "docker-compose down",
+    "migrate": "cd backend && npm run migrate",
+    "migrate:dev": "cd backend && npm run migrate:dev",
+    "migrate:prod": "cd backend && npm run migrate:prod",
+    "seed": "cd backend && npm run seed",
+    "setup": "npm install && npm run migrate:dev && npm run seed",
+    "clean": "npm run clean:deps && npm run clean:build",
+    "clean:deps": "rm -rf node_modules frontend/node_modules backend/node_modules mobile/node_modules shared/node_modules",
+    "clean:build": "rm -rf frontend/.next backend/dist mobile/dist shared/dist"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "concurrently": "^8.2.0",
+    "prettier": "^3.1.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/smile.git"
+  },
+  "keywords": [
+    "social-media",
+    "ai-agents",
+    "marketplace",
+    "nextjs",
+    "nodejs",
+    "typescript",
+    "social-network"
+  ],
+  "author": "SMILE Team",
+  "license": "MIT"
+}

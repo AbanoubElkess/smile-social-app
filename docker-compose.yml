@@ -1,0 +1,136 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: smile-postgres
+    environment:
+      POSTGRES_DB: smile_db
+      POSTGRES_USER: smile_user
+      POSTGRES_PASSWORD: smile_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - smile-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: smile-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - smile-network
+
+  # MongoDB for AI Data
+  mongodb:
+    image: mongo:6
+    container_name: smile-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: smile_user
+      MONGO_INITDB_ROOT_PASSWORD: smile_password
+      MONGO_INITDB_DATABASE: smile_ai
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - smile-network
+
+  # Backend API Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: smile-backend
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://smile_user:smile_password@postgres:5432/smile_db
+      REDIS_URL: redis://redis:6379
+      MONGODB_URL: mongodb://smile_user:smile_password@mongodb:27017/smile_ai
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+      - redis
+      - mongodb
+    networks:
+      - smile-network
+    command: npm run dev
+
+  # AI Service (Python)
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile.dev
+    container_name: smile-ai-service
+    environment:
+      ENVIRONMENT: development
+      MONGODB_URL: mongodb://smile_user:smile_password@mongodb:27017/smile_ai
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./ai-service:/app
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - smile-network
+    command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+
+  # Frontend (Next.js)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: smile-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NEXT_PUBLIC_SOCKET_URL: http://localhost:3001
+      NEXT_PUBLIC_AI_SERVICE_URL: http://localhost:8001
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend
+      - ai-service
+    networks:
+      - smile-network
+    command: npm run dev
+
+  # Nginx (API Gateway)
+  nginx:
+    image: nginx:alpine
+    container_name: smile-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./infrastructure/nginx/nginx.dev.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - frontend
+      - backend
+      - ai-service
+    networks:
+      - smile-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  mongodb_data:
+
+networks:
+  smile-network:
+    driver: bridge

@@ -1,0 +1,438 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model
+model User {
+  id          String    @id @default(uuid())
+  email       String    @unique
+  username    String    @unique
+  displayName String
+  avatar      String?
+  bio         String?
+  verified    Boolean   @default(false)
+  accountType AccountType @default(USER)
+  
+  // Privacy settings
+  profileVisibility    String @default("public") // public, private, friends
+  allowDirectMessages  Boolean @default(true)
+  allowTagging         Boolean @default(true)
+  showOnlineStatus     Boolean @default(true)
+  
+  // Authentication
+  password     String?
+  emailVerified DateTime?
+  
+  // OAuth
+  googleId     String?
+  facebookId   String?
+  appleId      String?
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lastLoginAt DateTime?
+  
+  // Relationships
+  posts        Post[]
+  comments     Comment[]
+  likes        Like[]
+  followers    Follow[] @relation("UserFollowers")
+  following    Follow[] @relation("UserFollowing")
+  
+  // AI Agent relationships
+  createdAgents AIAgent[] @relation("AgentCreator")
+  subscriptions Subscription[]
+  transactions  Transaction[]
+  
+  // Conversations
+  conversations ConversationParticipant[]
+  messages      Message[]
+  
+  // Notifications
+  notifications Notification[]
+  
+  @@map("users")
+}
+
+// AI Agent model
+model AIAgent {
+  id          String    @id @default(uuid())
+  name        String
+  username    String    @unique
+  avatar      String?
+  description String
+  
+  // Creator
+  creatorId   String
+  creator     User      @relation("AgentCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  
+  // AI Configuration
+  personality Json      // AIPersonality object
+  capabilities Json     // AICapabilities object
+  systemPrompt String?
+  
+  // Pricing
+  pricing     Json      // AgentPricing object
+  
+  // Metrics
+  totalInteractions Int @default(0)
+  averageRating     Float @default(0)
+  totalRatings      Int @default(0)
+  responseTime      Float @default(0)
+  satisfactionScore Float @default(0)
+  revenueGenerated  Float @default(0)
+  
+  // Status
+  status      AgentStatus @default(DRAFT)
+  
+  // Training
+  lastTrained DateTime?
+  trainingStatus String @default("pending")
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relationships
+  subscriptions Subscription[]
+  transactions  Transaction[]
+  reviews       Review[]
+  messages      Message[]
+  conversations ConversationParticipant[]
+  
+  @@map("ai_agents")
+}
+
+// Post model
+model Post {
+  id          String    @id @default(uuid())
+  authorId    String
+  author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  content     String
+  mediaUrls   String[]  @default([])
+  type        PostType  @default(TEXT)
+  visibility  String    @default("public") // public, private, friends
+  
+  // Metrics
+  likesCount    Int @default(0)
+  commentsCount Int @default(0)
+  sharesCount   Int @default(0)
+  viewsCount    Int @default(0)
+  savesCount    Int @default(0)
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relationships
+  comments  Comment[]
+  likes     Like[]
+  
+  @@map("posts")
+}
+
+// Comment model
+model Comment {
+  id        String    @id @default(uuid())
+  postId    String
+  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  authorId  String
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  content   String
+  
+  // Nested comments
+  parentCommentId String?
+  parentComment   Comment? @relation("CommentReplies", fields: [parentCommentId], references: [id])
+  replies         Comment[] @relation("CommentReplies")
+  
+  // Metrics
+  likesCount Int @default(0)
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relationships
+  likes     Like[]
+  
+  @@map("comments")
+}
+
+// Like model
+model Like {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  postId    String?
+  post      Post?     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  commentId String?
+  comment   Comment?  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  
+  type      LikeType  @default(LIKE)
+  
+  createdAt DateTime  @default(now())
+  
+  @@unique([userId, postId])
+  @@unique([userId, commentId])
+  @@map("likes")
+}
+
+// Follow model
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String
+  follower    User     @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  
+  followingId String
+  following   User     @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+// Conversation model
+model Conversation {
+  id           String    @id @default(uuid())
+  type         ConversationType @default(DIRECT)
+  title        String?
+  isArchived   Boolean   @default(false)
+  
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  
+  // Relationships
+  participants ConversationParticipant[]
+  messages     Message[]
+  
+  @@map("conversations")
+}
+
+// Conversation Participant model
+model ConversationParticipant {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  userId         String?
+  user           User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  aiAgentId      String?
+  aiAgent        AIAgent?     @relation(fields: [aiAgentId], references: [id], onDelete: Cascade)
+  
+  role           ParticipantRole @default(MEMBER)
+  joinedAt       DateTime     @default(now())
+  lastReadAt     DateTime?
+  
+  @@unique([conversationId, userId])
+  @@unique([conversationId, aiAgentId])
+  @@map("conversation_participants")
+}
+
+// Message model
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  senderId       String?
+  sender         User?        @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  
+  aiAgentId      String?
+  aiAgent        AIAgent?     @relation(fields: [aiAgentId], references: [id], onDelete: Cascade)
+  
+  content        String
+  type           MessageType  @default(TEXT)
+  replyToId      String?
+  
+  reactions      Json         @default("[]") // Array of MessageReaction
+  
+  isEdited       Boolean      @default(false)
+  isDeleted      Boolean      @default(false)
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  
+  @@map("messages")
+}
+
+// Subscription model
+model Subscription {
+  id                String           @id @default(uuid())
+  userId            String
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  agentId           String
+  agent             AIAgent          @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  
+  plan              SubscriptionPlan
+  status            SubscriptionStatus @default(ACTIVE)
+  
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  
+  stripeSubscriptionId String?        @unique
+  
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  
+  @@unique([userId, agentId])
+  @@map("subscriptions")
+}
+
+// Transaction model
+model Transaction {
+  id                    String            @id @default(uuid())
+  buyerId               String
+  buyer                 User              @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  
+  agentId               String
+  agent                 AIAgent           @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  
+  type                  TransactionType
+  amount                Float
+  currency              String            @default("USD")
+  paymentMethod         String
+  status                TransactionStatus @default(PENDING)
+  
+  stripePaymentIntentId String?           @unique
+  
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  
+  @@map("transactions")
+}
+
+// Review model
+model Review {
+  id        String   @id @default(uuid())
+  userId    String
+  agentId   String
+  agent     AIAgent  @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  
+  rating    Int      // 1-5 stars
+  comment   String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([userId, agentId])
+  @@map("reviews")
+}
+
+// Notification model
+model Notification {
+  id      String           @id @default(uuid())
+  userId  String
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type    NotificationType
+  title   String
+  message String
+  data    Json?            // Additional data for the notification
+  isRead  Boolean          @default(false)
+  
+  createdAt DateTime       @default(now())
+  
+  @@map("notifications")
+}
+
+// Enums
+enum AccountType {
+  USER
+  AI_AGENT
+  BUSINESS
+}
+
+enum AgentStatus {
+  DRAFT
+  PUBLISHED
+  SUSPENDED
+}
+
+enum PostType {
+  TEXT
+  IMAGE
+  VIDEO
+  POLL
+}
+
+enum LikeType {
+  LIKE
+  LOVE
+  LAUGH
+  WOW
+  SAD
+  ANGRY
+}
+
+enum ConversationType {
+  DIRECT
+  GROUP
+  AI_CHAT
+}
+
+enum ParticipantRole {
+  ADMIN
+  MEMBER
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  SYSTEM
+}
+
+enum SubscriptionPlan {
+  MONTHLY
+  YEARLY
+  LIFETIME
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  PAST_DUE
+}
+
+enum TransactionType {
+  PURCHASE
+  SUBSCRIPTION
+  RENEWAL
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum NotificationType {
+  LIKE
+  COMMENT
+  FOLLOW
+  MESSAGE
+  AI_RESPONSE
+  PAYMENT
+  SYSTEM
+  AGENT_APPROVED
+  AGENT_PURCHASED
+}
