@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
 import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
-import app from '../src/server';
+import { AuthService } from '../src/services/authService';
+import { hashPassword } from '../src/utils/auth';
 
 const prisma = new PrismaClient();
 
